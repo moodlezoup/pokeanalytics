@@ -1,11 +1,10 @@
 import json, sys, os, argparse, math
+import matplotlib.pyplot as plt
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--month', '-t', required=False)
-parser.add_argument('--format', '-f', required=True)
+parser.add_argument('--format', '-f', nargs='+', required=True)
 parser.add_argument('--metric', '-m', required=False)
-parser.add_argument('--degree', '-d', required=False)
-parser.add_argument('--epsilon', '-e', required=False)
 args = parser.parse_args()
 
 all_months = ['2014-11', '2014-12', '2015-01', '2015-02', '2015-03', '2015-04', '2015-05', '2015-06', \
@@ -14,8 +13,11 @@ all_months = ['2014-11', '2014-12', '2015-01', '2015-02', '2015-03', '2015-04', 
 data = None
 info = None
 
-epsilon = args.epsilon or 0
-q = args.degree or 2
+# Only look at pokemon with usage percentage above some threshold epsilon
+epsilon = 0 
+
+# Degree used in diversity metric; for Simpson Index and Renyi Entropy, must equal 2. 
+q = 2
 
 def read_file(month, format):
     global data
@@ -37,7 +39,6 @@ def gini():
     denominator = 2*len(data)*denominator
     return numerator/float(denominator)
 
-# Number of pokemon with usage percentage above some threshold epsilon
 def richness():
     counter = 0
     for pokemon in data:
@@ -90,9 +91,21 @@ if __name__ == '__main__':
     month = None
     if args.month:
         month = args.month
-        read_file(month, args.format)
-        print all_metrics[args.metric]()
-    else: 
-        for month in all_months:
-            read_file(month, args.format)
+        for tier in args.format:
+            read_file(month, tier)
             print all_metrics[args.metric]()
+    else: 
+        for tier in args.format:
+            vals = []
+            for month in all_months:
+                read_file(month, tier)
+                vals.append(all_metrics[args.metric]())
+            plt.plot(range(len(all_months)), vals, label=tier)
+        if len(args.format) > 1:
+            plt.legend(bbox_to_anchor=(1.05, 1), loc=2, borderaxespad=0.)
+        plt.ylabel(args.metric)
+        plt.xlabel('month')
+        plt.xticks(range(len(all_months)), all_months, rotation='vertical')
+        plt.subplots_adjust(bottom=0.15, right=0.75)
+        plt.show()
+
