@@ -20,7 +20,7 @@ python analysis/balance_metrics.py --format ru-0 ru-1500 ru-1630 ru-1760 --metri
 
 The plot given by the last command:
 
-[example](https://github.com/mzhu25/pokeanalytics/raw/master/example_plot.png "Example Plot")
+![example](https://raw.githubusercontent.com/mzhu25/pokeanalytics/master/example_plot.png)
 
 ## Metrics
 The metrics implemented, and there corresponding format flag argument:
