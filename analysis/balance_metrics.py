@@ -14,7 +14,7 @@ data = None
 info = None
 
 # Only look at pokemon with usage percentage above some threshold epsilon
-epsilon = 0 
+epsilon = 0
 
 # Degree used in diversity metric; for Simpson Index and Renyi Entropy, must equal 2. 
 q = 2
@@ -82,7 +82,7 @@ def renyi():
     return math.log(diversity())
 
 def berger_parker():
-    return data[0]['Raw count']/float(info('number of battles'))
+    return data[0][1]['Raw count']/float(info['number of battles'])
 
 all_metrics = {'gini': gini, 'richness': richness, 'diversity': diversity, 'shannon': shannon, \
                'gini_simpson': gini_simpson, 'simpson': simpson, 'renyi': renyi, 'berger_parker': berger_parker}
@@ -95,6 +95,7 @@ if __name__ == '__main__':
             read_file(month, tier)
             print all_metrics[args.metric]()
     else: 
+        plt.figure(figsize=(12,8))
         for tier in args.format:
             vals = []
             for month in all_months:
@@ -106,6 +107,6 @@ if __name__ == '__main__':
         plt.ylabel(args.metric)
         plt.xlabel('month')
         plt.xticks(range(len(all_months)), all_months, rotation='vertical')
-        plt.subplots_adjust(bottom=0.15, right=0.75)
+        plt.subplots_adjust(bottom=0.2, right=0.75)
         plt.show()
 
