@@ -1,4 +1,4 @@
-import json, sys, os, argparse, math
+import util, sys, os, argparse, math
 import matplotlib.pyplot as plt
 
 parser = argparse.ArgumentParser()
@@ -19,15 +19,6 @@ epsilon = 0
 # Degree used in diversity metric; for Simpson Index and Renyi Entropy, must equal 2. 
 q = 2
 
-def read_file(month, format):
-    global data
-    global info
-    file_path = 'data/' + month + '/' + format + '.json'
-    with open(file_path, 'rb') as data_file:
-        data = json.load(data_file)
-        info = data['info']
-        data = [(k,v) for k,v in data['data'].items()]
-    data.sort(key=lambda x: x[1]['Raw count'])
 
 def gini():
     numerator = 0
@@ -42,7 +33,7 @@ def gini():
 def richness():
     counter = 0
     for pokemon in data:
-        if pokemon[1]['Raw count']/float(info['number of battles']) > epsilon:
+        if util.usage_proportion(pokemon[1], info) > epsilon:
             counter += 1
     return counter
 
@@ -53,8 +44,7 @@ def diversity():
         return math.exp(shannon())
     wgm = 0 # weighted generalized mean
     for pokemon in data:
-        p = pokemon[1]['Raw count']/float(info['number of battles'])
-        if p < epsilon:
+        if util.usage_proportion(pokemon[1], info) < epsilon:
             continue
         wgm += p**q
     return wgm**(1/(1-q))
@@ -62,8 +52,7 @@ def diversity():
 def shannon():
     H = 0
     for pokemon in data:
-        p = pokemon[1]['Raw count']/float(info['number of battles'])
-        if p < epsilon:
+        if util.usage_proportion(pokemon[1], info) < epsilon:
             continue
         H -= p*math.log(p)
     return H
@@ -82,7 +71,7 @@ def renyi():
     return math.log(diversity())
 
 def berger_parker():
-    return data[0][1]['Raw count']/float(info['number of battles'])
+    return util.usage_proportion(data[0][1], info)
 
 all_metrics = {'gini': gini, 'richness': richness, 'diversity': diversity, 'shannon': shannon, \
                'gini_simpson': gini_simpson, 'simpson': simpson, 'renyi': renyi, 'berger_parker': berger_parker}
@@ -92,14 +81,14 @@ if __name__ == '__main__':
     if args.month:
         month = args.month
         for tier in args.format:
-            read_file(month, tier)
+            data, info = util.read_file(month, tier)
             print all_metrics[args.metric]()
     else: 
         plt.figure(figsize=(12,8))
         for tier in args.format:
             vals = []
             for month in all_months:
-                read_file(month, tier)
+                data, info = util.read_file(month, tier)
                 vals.append(all_metrics[args.metric]())
             plt.plot(range(len(all_months)), vals, label=tier)
         if len(args.format) > 1:
