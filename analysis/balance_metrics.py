@@ -16,7 +16,7 @@ info = None
 # Only look at pokemon with usage percentage above some threshold epsilon
 epsilon = 0
 
-# Degree used in diversity metric; for Simpson Index and Renyi Entropy, must equal 2. 
+# Degree used in diversity metric; for Simpson Index and Renyi Entropy, must equal 2.
 q = 2
 
 
@@ -33,18 +33,18 @@ def gini():
 def richness():
     counter = 0
     for pokemon in data:
-        if util.usage_proportion(pokemon[1], info) > epsilon:
+        if util.usageProportion(pokemon[1], info) > epsilon:
             counter += 1
     return counter
 
 def diversity():
-    # The limit of the diversity expression is undefined but well-defined as q -> 1, and equals 
+    # The limit of the diversity expression is undefined but well-defined as q -> 1, and equals
     # the exponential of the Shannon entropy
     if q == 1:
         return math.exp(shannon())
     wgm = 0 # weighted generalized mean
     for pokemon in data:
-        if util.usage_proportion(pokemon[1], info) < epsilon:
+        if util.usageProportion(pokemon[1], info) < epsilon:
             continue
         wgm += p**q
     return wgm**(1/(1-q))
@@ -52,7 +52,7 @@ def diversity():
 def shannon():
     H = 0
     for pokemon in data:
-        if util.usage_proportion(pokemon[1], info) < epsilon:
+        if util.usageProportion(pokemon[1], info) < epsilon:
             continue
         H -= p*math.log(p)
     return H
@@ -71,7 +71,7 @@ def renyi():
     return math.log(diversity())
 
 def berger_parker():
-    return util.usage_proportion(data[0][1], info)
+    return util.usageProportion(data[0][1], info)
 
 all_metrics = {'gini': gini, 'richness': richness, 'diversity': diversity, 'shannon': shannon, \
                'gini_simpson': gini_simpson, 'simpson': simpson, 'renyi': renyi, 'berger_parker': berger_parker}
@@ -81,14 +81,14 @@ if __name__ == '__main__':
     if args.month:
         month = args.month
         for tier in args.format:
-            data, info = util.read_file(month, tier)
+            data, info = util.readFile(month, tier)
             print all_metrics[args.metric]()
-    else: 
+    else:
         plt.figure(figsize=(12,8))
         for tier in args.format:
             vals = []
             for month in all_months:
-                data, info = util.read_file(month, tier)
+                data, info = util.readFile(month, tier)
                 vals.append(all_metrics[args.metric]())
             plt.plot(range(len(all_months)), vals, label=tier)
         if len(args.format) > 1:
@@ -98,4 +98,3 @@ if __name__ == '__main__':
         plt.xticks(range(len(all_months)), all_months, rotation='vertical')
         plt.subplots_adjust(bottom=0.2, right=0.75)
         plt.show()
-
